@@ -1,5 +1,9 @@
 package os.chat.server;
 
+import java.rmi.RemoteException;
+import java.rmi.registry.LocateRegistry;
+import java.rmi.registry.Registry;
+import java.rmi.server.UnicastRemoteObject;
 import java.util.Vector;
 
 /**
@@ -22,6 +26,8 @@ public class ChatServerManager implements ChatServerManagerInterface {
 	private Vector<ChatServer> chatRooms;
 
     private static ChatServerManager instance = null;
+
+	private Registry registry;
 	
 	/**
 	 * Constructor of the <code>ChatServerManager</code>.
@@ -30,11 +36,21 @@ public class ChatServerManager implements ChatServerManagerInterface {
 	 * the {@link ChatClient}.
 	 */
 	public ChatServerManager () {
-		
+		chatRoomsList = new Vector<String>();
+		chatRooms = new Vector<ChatServer>();
+		try {
+			ChatServerManagerInterface stub = (ChatServerManagerInterface) UnicastRemoteObject.exportObject(this,0);
+			registry = LocateRegistry.getRegistry();
+			registry.rebind("ChatServerManager",stub);
+		} catch (RemoteException e){
+			System.err.println("can not export the object");
+			e.printStackTrace();
+		}
+		System.out.println("ChatServerManager was created");
 		// initial: we create a single chat room and the corresponding ChatServer
 		chatRooms.add(new ChatServer("sports"));
 		chatRoomsList.add("sports");
-		
+
 		/*
 		 * TODO register the server manager object as a "ChatServerManager" on the RMI registry
 		 * so it can be called by clients.
@@ -78,6 +94,17 @@ public class ChatServerManager implements ChatServerManagerInterface {
 		 */
 		
 		return false;
-	}	
+	}
+
+	public static void main(String[] args) {
+		try {
+			LocateRegistry.createRegistry(1099);
+		} catch (RemoteException e) {
+			System.err.println("error: can not create registry");
+			e.printStackTrace();
+		}
+		System.out.println("registry was created");
+		getInstance();
+	}
 	
 }
