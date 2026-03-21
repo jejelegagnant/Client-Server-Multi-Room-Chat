@@ -1,5 +1,9 @@
 package os.chat.server;
 
+import java.rmi.RemoteException;
+import java.rmi.registry.LocateRegistry;
+import java.rmi.registry.Registry;
+import java.rmi.server.UnicastRemoteObject;
 import java.util.Vector;
 
 import os.chat.client.CommandsFromServer;
@@ -18,6 +22,7 @@ public class ChatServer implements ChatServerInterface {
 	
 	private String roomName;
 	private Vector<CommandsFromServer> registeredClients;
+	private Registry registry;
 	
   /**
    * Constructs and initializes the chat room before registering it to the RMI
@@ -27,10 +32,14 @@ public class ChatServer implements ChatServerInterface {
 	public ChatServer(String roomName){
 		this.roomName = roomName;
 		registeredClients = new Vector<CommandsFromServer>();
-		
-		/*
-		 * TODO register the ChatServer to the RMI registry
-		 */
+		try {
+			ChatServerInterface stub = (ChatServerInterface) UnicastRemoteObject.exportObject(this,0);
+			registry = LocateRegistry.getRegistry();
+			registry.rebind("room_"+roomName,stub);
+		} catch (RemoteException e){
+			System.err.println("can not export the object");
+			e.printStackTrace();
+		}
 	}
 
 	/**
@@ -55,11 +64,8 @@ public class ChatServer implements ChatServerInterface {
 	 */
 	public void register(CommandsFromServer client) {
 		
-		System.err.println("TODO: register is not implemented");
-		
-		/*
-		 * TODO register the client
-		 */
+		registeredClients.add(client);
+		System.out.println(client+" registered to"+roomName);
 	}
 
 	/**
@@ -69,11 +75,8 @@ public class ChatServer implements ChatServerInterface {
 	 */
 	public void unregister(CommandsFromServer client) {
 		
-		System.err.println("TODO: unregister is not implemented");
-		
-		/*
-		 * TODO unregister the client
-		 */
+		registeredClients.remove(client);
+		System.out.println(client+"left"+roomName);
 	}
 	
 }

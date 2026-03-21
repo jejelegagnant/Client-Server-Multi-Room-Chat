@@ -5,8 +5,10 @@ import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
+import java.rmi.server.UnicastRemoteObject;
 import java.util.Vector;
 
+import os.chat.server.ChatServerInterface;
 import os.chat.server.ChatServerManagerInterface;
 /**
  * This class implements a chat client that can be run locally or remotely to
@@ -14,7 +16,9 @@ import os.chat.server.ChatServerManagerInterface;
  */
 public class ChatClient implements CommandsFromWindow,CommandsFromServer {
 	ChatServerManagerInterface csm;
+	ChatServerInterface cs;
 	Registry registry;
+	CommandsFromServer stub;
 	/**
 	 * The name of the user of this client
 	 */
@@ -42,6 +46,7 @@ public class ChatClient implements CommandsFromWindow,CommandsFromServer {
 		try {
 			registry = LocateRegistry.getRegistry();
 			csm = (ChatServerManagerInterface) registry.lookup("ChatServerManager");
+			CommandsFromServer stub = (CommandsFromServer) UnicastRemoteObject.exportObject(this,0);
 		} catch (RemoteException e) {
 			System.err.println("can not locate registry");
 			e.printStackTrace();
@@ -96,14 +101,19 @@ public class ChatClient implements CommandsFromWindow,CommandsFromServer {
 	 * <code>false</code> otherwise
 	 */
 	public boolean joinChatRoom(String roomName) {
-		
-		System.err.println("TODO: joinChatRoom is not implemented.");
-
-		/*
-		 * TODO implement the method to join a chat room and receive notifications of new messages.
-		 */		
-		
-		return false;		
+		try {
+			cs = (ChatServerInterface) registry.lookup("room_" + roomName);
+			cs.register(stub);
+			return true;
+		} catch (RemoteException e) {
+			System.err.println("cannot locate registry or call ChatServer.register");
+			e.printStackTrace();
+			return false;
+		} catch (NotBoundException e) {
+			System.err.println("Could not find room: " + roomName);
+			e.printStackTrace();
+			return false;
+		}
 	}
 
 	/**
@@ -115,15 +125,14 @@ public class ChatClient implements CommandsFromWindow,CommandsFromServer {
 	 * <code>false</code> otherwise
 	 */	
 	public boolean leaveChatRoom(String roomName) {
-		
-		System.err.println("TODO: leaveChatRoom is not implemented.");
-
-		/*
-		 * TODO implement the method to leave a chat room and stop receiving notifications of new messages.
-		 */		
-		
-		return false;
-	}
+        try {
+            cs.unregister(stub);
+			return true;
+        } catch (RemoteException e) {
+            System.err.println("Unable to leave "+roomName);
+			return false;
+        }
+    }
 
     /**
      * Creates a new room named <code>roomName</code> on the server.
