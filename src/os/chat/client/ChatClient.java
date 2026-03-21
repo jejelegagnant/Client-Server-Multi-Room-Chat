@@ -46,7 +46,7 @@ public class ChatClient implements CommandsFromWindow,CommandsFromServer {
 		try {
 			registry = LocateRegistry.getRegistry();
 			csm = (ChatServerManagerInterface) registry.lookup("ChatServerManager");
-			CommandsFromServer stub = (CommandsFromServer) UnicastRemoteObject.exportObject(this,0);
+			stub = (CommandsFromServer) UnicastRemoteObject.exportObject(this,0);
 		} catch (RemoteException e) {
 			System.err.println("can not locate registry");
 			e.printStackTrace();

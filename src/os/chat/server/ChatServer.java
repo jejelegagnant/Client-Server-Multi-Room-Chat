@@ -65,7 +65,7 @@ public class ChatServer implements ChatServerInterface {
 	public void register(CommandsFromServer client) {
 		
 		registeredClients.add(client);
-		System.out.println(client+" registered to"+roomName);
+		System.out.println(client+" registered to "+roomName);
 	}
 
 	/**
@@ -76,7 +76,7 @@ public class ChatServer implements ChatServerInterface {
 	public void unregister(CommandsFromServer client) {
 		
 		registeredClients.remove(client);
-		System.out.println(client+"left"+roomName);
+		System.out.println(client+"left "+roomName);
 	}
 	
 }
