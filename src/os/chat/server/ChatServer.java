@@ -49,16 +49,26 @@ public class ChatServer implements ChatServerInterface {
 	 * @param publisher the client from which the message originates
 	 */
 	public void publish(String message, String publisher) {
-		System.out.println("Broadcasting : "+publisher+": "+message);
-		for (int i = 0; i < registeredClients.size(); i++) {
-			CommandsFromServer client = registeredClients.get(i);
+		System.out.println("Broadcasting : " + publisher + ": " + message);
+
+		//temporary list of disconnected clients
+		Vector<CommandsFromServer> disconnectedClients = new Vector<>();
+
+		// Phase 1
+        for (CommandsFromServer client : registeredClients) {
             try {
-                client.receiveMsg(roomName,publisher+": "+message);
+                client.receiveMsg(roomName, publisher + ": " + message);
             } catch (RemoteException e) {
-                System.err.println("Unable to publish to "+i);
-				e.printStackTrace();
+                System.err.println("Assuming the connection is lost, client disconnected");
+                disconnectedClients.add(client);
             }
         }
+
+		// Phase 2
+		if (!disconnectedClients.isEmpty()){
+			registeredClients.removeAll(disconnectedClients);
+			publish("One or more client lost connection","server");
+		}
 	}
 
 	/**
