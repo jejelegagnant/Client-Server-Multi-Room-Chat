@@ -9,11 +9,11 @@ import java.util.Vector;
 /**
  * This class manages the available {@link ChatServer}s and available rooms.
  * <p>
- * At first you should not modify its functionalities but only export
- * them for being called by the {@link ChatClient}.
+ * At first, you should not modify its functionalities but only export
+ * them for being called by the {@link os.chat.client.ChatClient}.
  * <p>
  * Later you will modify this to allow creating new rooms and
- * looking them up from the {@link ChatClient}.
+ * looking them up from the {@link os.chat.client.ChatClient}.
  */
 public class ChatServerManager implements ChatServerManagerInterface {
 
@@ -33,7 +33,7 @@ public class ChatServerManager implements ChatServerManagerInterface {
 	 * Constructor of the <code>ChatServerManager</code>.
 	 * <p>
 	 * Must register its functionalities as stubs to be called from RMI by
-	 * the {@link ChatClient}.
+	 * the {@link os.chat.client.ChatClient}.
 	 */
 	public ChatServerManager () {
 		chatRoomsList = new Vector<String>();
@@ -50,12 +50,6 @@ public class ChatServerManager implements ChatServerManagerInterface {
 		// initial: we create a single chat room and the corresponding ChatServer
 		chatRooms.add(new ChatServer("sports"));
 		chatRoomsList.add("sports");
-
-		/*
-		 * TODO register the server manager object as a "ChatServerManager" on the RMI registry
-		 * so it can be called by clients.
-		 */
-		
 	}
 
     /**
@@ -86,14 +80,15 @@ public class ChatServerManager implements ChatServerManagerInterface {
 	 * <code>false</code> otherwise.
 	 */
 	public boolean createRoom(String roomName) {
-		
-		System.err.println("server manager method createRoom not implemented.");
-		
-		/*
-		 * TODO add the code to create a new room
-		 */
-		
-		return false;
+		if (!chatRoomsList.contains(roomName)){
+			chatRooms.add(new ChatServer(roomName));
+			chatRoomsList.add(roomName);
+			System.out.println("New room created: "+roomName);
+			return true;
+		}else {
+			System.out.println(roomName+" already exists");
+			return false;
+		}
 	}
 
 	public static void main(String[] args) {

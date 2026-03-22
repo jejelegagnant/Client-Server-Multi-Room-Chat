@@ -79,7 +79,7 @@ public class ChatClientWindow implements CommandsToWindow {
 		// create the client object first
 		System.out.println("Initializing the ChatClient object ...");
 		
-		// display a dialog asking for the user name
+		// display a dialog asking for the username
 		String userName = (String)JOptionPane.showInputDialog(
                 null,
                 "Enter your name:\n",
@@ -143,7 +143,7 @@ public class ChatClientWindow implements CommandsToWindow {
 		// create the map for chats (initially empty)
 		chats = new HashMap<String, JScrollPane>();
 		
-		// add a change listener to the tabbedpane so we can track which one is in focus
+		// add a change listener to the tabbed pane so we can track which one is in focus
 		tabbedPane.addChangeListener(new ChangeListener() {			
 			@Override
 			public void stateChanged(ChangeEvent arg0) {
@@ -203,7 +203,7 @@ public class ChatClientWindow implements CommandsToWindow {
 				// get the selected room name from the list
 				int index = listChatRooms.getSelectedIndex();
 				if (index == -1) {
-					// no selection: warn with a pop up.
+					// no selection: warn with a pop-up.
 					JOptionPane.showMessageDialog(frmChatClient, "You must select a room name from the list first!", "Error message", JOptionPane.ERROR_MESSAGE);
 				} else {
 					// get the selected item name
@@ -303,7 +303,7 @@ public class ChatClientWindow implements CommandsToWindow {
 		if (! chats.containsKey(chatName)) {
 			JOptionPane.showMessageDialog(frmChatClient, "The client asks for sending a message\nto a non-existing chat room ("+chatName+").", "Error message", JOptionPane.ERROR_MESSAGE);
 		} else {
-			// get the textpane embedded in the jscrollpane embedded in the tab
+			// get the text pane embedded in the jscrollpane embedded in the tab
 			JScrollPane jsp = chats.get(chatName);
 			JTextArea jta = (JTextArea) jsp.getViewport().getView();
 			jta.setText(jta.getText()+"\n"+message);			

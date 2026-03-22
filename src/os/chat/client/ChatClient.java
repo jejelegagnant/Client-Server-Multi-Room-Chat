@@ -9,6 +9,7 @@ import java.rmi.server.UnicastRemoteObject;
 import java.util.HashMap;
 import java.util.Vector;
 
+import os.chat.server.ChatServer;
 import os.chat.server.ChatServerInterface;
 import os.chat.server.ChatServerManagerInterface;
 /**
@@ -97,7 +98,7 @@ public class ChatClient implements CommandsFromWindow,CommandsFromServer {
 	/**
 	 * Join the chat room. Does not leave previously joined chat rooms. To
 	 * join a chat room we need to know only the chat room's name.
-	 * @param name the name (unique identifier) of the chat room
+	 * @param roomName the name (unique identifier) of the chat room
 	 * @return <code>true</code> if joining the chat room was successful,
 	 * <code>false</code> otherwise
 	 */
@@ -144,14 +145,13 @@ public class ChatClient implements CommandsFromWindow,CommandsFromServer {
      * <code>false</code> otherwise.
      */
 	public boolean createNewRoom(String roomName) {
-		
-		System.err.println("TODO: createNewRoom is not implemented.");
-
-		/*
-		 * TODO implement the method to ask the server to create a new room (second part of the assignment only).
-		 */		
-		
-		return false;
+        try {
+            return csm.createRoom(roomName);
+        } catch (RemoteException e) {
+            System.err.println("Unable to create room, possible connection error");
+			e.printStackTrace();
+			return false;
+        }
 	}
 
 	/*
