@@ -19,11 +19,11 @@ import os.chat.client.CommandsFromServer;
  * for creating and adding new rooms.
  */
 public class ChatServer implements ChatServerInterface {
-	
+
 	private String roomName;
 	private Vector<CommandsFromServer> registeredClients;
 	private Registry registry;
-	
+
   /**
    * Constructs and initializes the chat room before registering it to the RMI
    * registry.
@@ -47,14 +47,18 @@ public class ChatServer implements ChatServerInterface {
 	 * chat room) a message send from a client.
 	 * @param message the message to propagate
 	 * @param publisher the client from which the message originates
-	 */	
+	 */
 	public void publish(String message, String publisher) {
-		
-		System.err.println("TODO: publish is not implemented");
-		
-		/*
-		 * TODO send the message to all registered clients
-		 */
+		System.out.println("Broadcasting : "+publisher+": "+message);
+		for (int i = 0; i < registeredClients.size(); i++) {
+			CommandsFromServer client = registeredClients.get(i);
+            try {
+                client.receiveMsg(roomName,publisher+": "+message);
+            } catch (RemoteException e) {
+                System.err.println("Unable to publish to "+i);
+				e.printStackTrace();
+            }
+        }
 	}
 
 	/**
@@ -63,7 +67,7 @@ public class ChatServer implements ChatServerInterface {
 	 * registry
 	 */
 	public void register(CommandsFromServer client) {
-		
+
 		registeredClients.add(client);
 		System.out.println(client+" registered to "+roomName);
 	}
@@ -74,9 +78,9 @@ public class ChatServer implements ChatServerInterface {
 	 * registry
 	 */
 	public void unregister(CommandsFromServer client) {
-		
+
 		registeredClients.remove(client);
 		System.out.println(client+"left "+roomName);
 	}
-	
+
 }

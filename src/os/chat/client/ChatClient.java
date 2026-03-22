@@ -69,13 +69,13 @@ public class ChatClient implements CommandsFromWindow,CommandsFromServer {
 	 * @param message the message to send to the chat room on the server
 	 */
 	public void sendText(String roomName, String message) {
-
-		System.err.println("TODO: sendText is not implemented.");
-
-		/*
-		 * TODO implement the method to send the message to the server.
-		 */
-	}
+		ChatServerInterface room = joinedRooms.get(roomName);
+        try {
+            room.publish(message,userName);
+        } catch (RemoteException e) {
+            e.printStackTrace();
+        }
+    }
 
 	/**
 	 * Retrieves the list of chat rooms from the server (as a {@link Vector}
@@ -172,11 +172,7 @@ public class ChatClient implements CommandsFromWindow,CommandsFromServer {
 	 * @param message the message to display
 	 */
 	public void receiveMsg(String roomName, String message) {
-		
-		System.err.println("TODO: getName is not implemented.");
-		/*
-		 * TODO implement the method to allow server to publish message for client.
-		 */
+		window.publish(roomName,message);
 	}
 		
 	// This class does not contain a main method. You should launch the whole program by launching ChatClientWindow's main method.
