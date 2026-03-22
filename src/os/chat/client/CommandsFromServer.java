@@ -5,7 +5,7 @@ import java.rmi.Remote;
 import java.rmi.RemoteException;
 
 /**
- * This is the interface between {@link ChatClient} and {@link ChatServer}.
+ * This is the interface between {@link ChatClient} and {@link os.chat.server.ChatServer}.
  */
 public interface CommandsFromServer extends Remote {
 	

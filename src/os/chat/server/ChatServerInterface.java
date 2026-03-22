@@ -20,13 +20,13 @@ public interface ChatServerInterface extends Remote {
 	
 	/**
 	 * registers a new client to the chat room
-	 * @param clientLookupName the name of the client as registered on the RMI registry
+	 * @param client the name of the client as registered on the RMI registry
 	 */
 	public void register(CommandsFromServer client) throws RemoteException;
 	
 	/**
 	 * unregisters a new client to the chat room
-	 * @param clientLookupName the name of the client as registered on the RMI registry
+	 * @param client the name of the client as registered on the RMI registry
 	 */
 	public void unregister(CommandsFromServer client) throws RemoteException;
 }
