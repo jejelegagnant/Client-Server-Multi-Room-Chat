@@ -6,6 +6,7 @@ import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
+import java.util.HashMap;
 import java.util.Vector;
 
 import os.chat.server.ChatServerInterface;
@@ -16,7 +17,7 @@ import os.chat.server.ChatServerManagerInterface;
  */
 public class ChatClient implements CommandsFromWindow,CommandsFromServer {
 	ChatServerManagerInterface csm;
-	ChatServerInterface cs;
+	HashMap<String, ChatServerInterface> joinedRooms;
 	Registry registry;
 	CommandsFromServer stub;
 	/**
@@ -42,7 +43,7 @@ public class ChatClient implements CommandsFromWindow,CommandsFromServer {
 	public ChatClient(CommandsToWindow window, String userName) {
 		this.window = window;
 		this.userName = userName;
-		
+		joinedRooms = new HashMap<>();
 		try {
 			registry = LocateRegistry.getRegistry();
 			csm = (ChatServerManagerInterface) registry.lookup("ChatServerManager");
@@ -102,8 +103,9 @@ public class ChatClient implements CommandsFromWindow,CommandsFromServer {
 	 */
 	public boolean joinChatRoom(String roomName) {
 		try {
-			cs = (ChatServerInterface) registry.lookup("room_" + roomName);
+			ChatServerInterface cs = (ChatServerInterface) registry.lookup("room_" + roomName);
 			cs.register(stub);
+			joinedRooms.put(roomName,cs);
 			return true;
 		} catch (RemoteException e) {
 			System.err.println("cannot locate registry or call ChatServer.register");
@@ -126,6 +128,7 @@ public class ChatClient implements CommandsFromWindow,CommandsFromServer {
 	 */	
 	public boolean leaveChatRoom(String roomName) {
         try {
+			ChatServerInterface cs = joinedRooms.remove(roomName);
             cs.unregister(stub);
 			return true;
         } catch (RemoteException e) {
