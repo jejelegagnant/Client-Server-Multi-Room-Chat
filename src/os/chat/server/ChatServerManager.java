@@ -38,6 +38,7 @@ public class ChatServerManager implements ChatServerManagerInterface {
 	public ChatServerManager () {
 		chatRoomsList = new Vector<String>();
 		chatRooms = new Vector<ChatServer>();
+		System.setProperty("java.rmi.server.hostname","134.21.142.251");
 		try {
 			ChatServerManagerInterface stub = (ChatServerManagerInterface) UnicastRemoteObject.exportObject(this,0);
 			registry = LocateRegistry.getRegistry();

@@ -21,7 +21,7 @@ public class ChatClient implements CommandsFromWindow,CommandsFromServer {
 	HashMap<String, ChatServerInterface> joinedRooms;
 	Registry registry;
 	CommandsFromServer stub;
-	private final String host = "localhost"; //update to another computer ip
+	private final String host = "134.21.157.146"; //update to another computer ip
 	/**
 	 * The name of the user of this client
 	 */
@@ -46,6 +46,7 @@ public class ChatClient implements CommandsFromWindow,CommandsFromServer {
 		this.window = window;
 		this.userName = userName;
 		joinedRooms = new HashMap<>();
+		System.setProperty("java.rmi.server.hostname","134.21.142.251");
 		try {
 			registry = LocateRegistry.getRegistry(host);
 			csm = (ChatServerManagerInterface) registry.lookup("ChatServerManager");
