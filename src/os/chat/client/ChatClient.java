@@ -163,17 +163,30 @@ public class ChatClient implements CommandsFromWindow,CommandsFromServer {
 	 * @param roomName the name (unique identifier) of the chat room
 	 * @return <code>true</code> if leaving the chat room was successful,
 	 * <code>false</code> otherwise
-	 */	
+	 */
 	public boolean leaveChatRoom(String roomName) {
-        try {
-			ChatServerInterface cs = joinedRooms.remove(roomName);
-            cs.unregister(stub);
+		// 1. Look up the room without removing it yet
+		ChatServerInterface cs = joinedRooms.get(roomName);
+
+		// 2. If it's already null, the UI is out of sync.
+		// Return true so the UI can finally close the tab.
+		if (cs == null) {
 			return true;
-        } catch (RemoteException e) {
-            System.err.println("Unable to leave "+roomName);
-			return false;
-        }
-    }
+		}
+
+		try {
+			cs.unregister(stub);
+			joinedRooms.remove(roomName); // Only remove it cleanly if successful
+			return true;
+		} catch (RemoteException e) {
+			System.err.println("Unable to unregister from " + roomName + " on the server.");
+
+			// The server is likely down or lost connection.
+			// Force-remove it locally so the UI doesn't get stuck in a locked state.
+			joinedRooms.remove(roomName);
+			return true;
+		}
+	}
 
     /**
      * Creates a new room named <code>roomName</code> on the server.
