@@ -21,11 +21,14 @@ public class ChatClient implements CommandsFromWindow,CommandsFromServer {
 	HashMap<String, ChatServerInterface> joinedRooms;
 	Registry registry;
 	CommandsFromServer stub;
-	private final String host = "134.21.157.146"; //update to another computer ip
+	private final String hostIp = "localhost"; //update to another computer ip
+	private final String myIp = "localhost";
+	// Add this to your class fields
+	private final HashMap<String, java.util.Queue<String>> pendingMessages = new HashMap<>();
 	/**
 	 * The name of the user of this client
 	 */
-	private String userName;
+	private final String userName;
 	
   /**
    * The graphical user interface, accessed through its interface. In return,
@@ -46,17 +49,27 @@ public class ChatClient implements CommandsFromWindow,CommandsFromServer {
 		this.window = window;
 		this.userName = userName;
 		joinedRooms = new HashMap<>();
-		System.setProperty("java.rmi.server.hostname","134.21.142.251");
+		System.setProperty("java.rmi.server.hostname",myIp);
+		connectToHost();
+	}
+
+	private boolean connectToHost() {
 		try {
-			registry = LocateRegistry.getRegistry(host);
+			registry = LocateRegistry.getRegistry(hostIp);
 			csm = (ChatServerManagerInterface) registry.lookup("ChatServerManager");
-			stub = (CommandsFromServer) UnicastRemoteObject.exportObject(this,0);
+			// ONLY export if it hasn't been exported yet
+			if (stub == null) {
+				stub = (CommandsFromServer) UnicastRemoteObject.exportObject(this, 0);
+			}
+			return true;
 		} catch (RemoteException e) {
 			System.err.println("can not locate registry");
 			e.printStackTrace();
+			return false;
 		} catch (NotBoundException e) {
 			System.err.println("can not lookup for ChatServerManager");
 			e.printStackTrace();
+			return false;
 		}
 	}
 
@@ -73,12 +86,35 @@ public class ChatClient implements CommandsFromWindow,CommandsFromServer {
 	 */
 	public void sendText(String roomName, String message) {
 		ChatServerInterface room = joinedRooms.get(roomName);
+		if (room == null) {
+			System.err.println("Not joined to room: " + roomName);
+			return;
+		}
         try {
             room.publish(message,userName);
         } catch (RemoteException e) {
-            e.printStackTrace();
+			pendingMessages.computeIfAbsent(roomName, k -> new java.util.LinkedList<>()).add(message);
+            if(connectToHost() && joinChatRoom(roomName)){
+				flushPendingMessages(roomName);
+			}
         }
     }
+	private void flushPendingMessages(String roomName) {
+		java.util.Queue<String> queue = pendingMessages.get(roomName);
+		ChatServerInterface room = joinedRooms.get(roomName);
+
+		while (queue != null && !queue.isEmpty()) {
+			String msg = queue.peek(); // Look at the oldest message
+			try {
+				room.publish(msg, userName);
+				queue.remove(); // Only remove if the server actually received it
+			} catch (RemoteException e) {
+				// Still no connection? Stop trying and keep the rest in the queue
+				System.err.println("Chatroom still unavailable");
+				break;
+			}
+		}
+	}
 
 	/**
 	 * Retrieves the list of chat rooms from the server (as a {@link Vector}
@@ -92,7 +128,7 @@ public class ChatClient implements CommandsFromWindow,CommandsFromServer {
 			return csm.getRoomsList();
 		} catch (RemoteException e) {
 			System.err.println("can not call ChatServerManager.getRoomsList()");
-			e.printStackTrace();
+			connectToHost();
 			return null;
 		}
 	}
@@ -112,11 +148,10 @@ public class ChatClient implements CommandsFromWindow,CommandsFromServer {
 			return true;
 		} catch (RemoteException e) {
 			System.err.println("cannot locate registry or call ChatServer.register");
-			e.printStackTrace();
+			connectToHost();
 			return false;
 		} catch (NotBoundException e) {
 			System.err.println("Could not find room: " + roomName);
-			e.printStackTrace();
 			return false;
 		}
 	}
@@ -151,7 +186,7 @@ public class ChatClient implements CommandsFromWindow,CommandsFromServer {
             return csm.createRoom(roomName);
         } catch (RemoteException e) {
             System.err.println("Unable to create room, possible connection error");
-			e.printStackTrace();
+			connectToHost();
 			return false;
         }
 	}

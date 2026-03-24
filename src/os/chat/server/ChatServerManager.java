@@ -28,7 +28,9 @@ public class ChatServerManager implements ChatServerManagerInterface {
     private static ChatServerManager instance = null;
 
 	private Registry registry;
-	
+
+	private final String myIp = "localhost";
+
 	/**
 	 * Constructor of the <code>ChatServerManager</code>.
 	 * <p>
@@ -38,7 +40,7 @@ public class ChatServerManager implements ChatServerManagerInterface {
 	public ChatServerManager () {
 		chatRoomsList = new Vector<String>();
 		chatRooms = new Vector<ChatServer>();
-		System.setProperty("java.rmi.server.hostname","134.21.142.251");
+		System.setProperty("java.rmi.server.hostname",myIp);
 		try {
 			ChatServerManagerInterface stub = (ChatServerManagerInterface) UnicastRemoteObject.exportObject(this,0);
 			registry = LocateRegistry.getRegistry();
