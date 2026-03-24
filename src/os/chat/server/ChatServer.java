@@ -21,6 +21,9 @@ import os.chat.client.CommandsFromServer;
 public class ChatServer implements ChatServerInterface {
 
 	private String roomName;
+	/**
+	 * List of {@link os.chat.client.ChatClient} that want to receive messages, through their interface
+	 */
 	private Vector<CommandsFromServer> registeredClients;
 	private Registry registry;
 
@@ -33,8 +36,11 @@ public class ChatServer implements ChatServerInterface {
 		this.roomName = roomName;
 		registeredClients = new Vector<CommandsFromServer>();
 		try {
+			// create and export the stub
 			ChatServerInterface stub = (ChatServerInterface) UnicastRemoteObject.exportObject(this,0);
+			//Get the local registry
 			registry = LocateRegistry.getRegistry();
+			// Bind itself into the registry
 			registry.rebind("room_"+roomName,stub);
 		} catch (RemoteException e){
 			System.err.println("can not export the object");
@@ -44,7 +50,7 @@ public class ChatServer implements ChatServerInterface {
 
 	/**
 	 * Publishes to all subscribed clients (i.e. all clients registered to a
-	 * chat room) a message send from a client.
+	 * chat room) a message send from a client. If a client is inaccessible removes it from the list
 	 * @param message the message to propagate
 	 * @param publisher the client from which the message originates
 	 */
@@ -54,7 +60,7 @@ public class ChatServer implements ChatServerInterface {
 		//temporary list of disconnected clients
 		Vector<CommandsFromServer> disconnectedClients = new Vector<>();
 
-		// Phase 1
+		// Phase 1: publish to all client, add to a list the one that failed
         for (CommandsFromServer client : registeredClients) {
             try {
                 client.receiveMsg(roomName, publisher + ": " + message);
@@ -64,9 +70,10 @@ public class ChatServer implements ChatServerInterface {
             }
         }
 
-		// Phase 2
+		// Phase 2 remove the list of failed clients from the list of client
 		if (!disconnectedClients.isEmpty()){
 			registeredClients.removeAll(disconnectedClients);
+			// announces to the remaining client that some client lost connection
 			publish("One or more client lost connection","server");
 		}
 	}
@@ -77,7 +84,9 @@ public class ChatServer implements ChatServerInterface {
 	 * registry
 	 */
 	public void register(CommandsFromServer client) {
+		// Announces that a client will join, must be done before due to race conditions in the GUI.
 		publish("A new client joined the room "+roomName,"server");
+		// add the new client to the data structure holding the active clients
 		registeredClients.add(client);
 		System.out.println(client+" registered to "+roomName);
 	}
@@ -88,8 +97,10 @@ public class ChatServer implements ChatServerInterface {
 	 * registry
 	 */
 	public void unregister(CommandsFromServer client) {
+		// Removes the client from the list
 		registeredClients.remove(client);
 		System.out.println(client+"left "+roomName);
+		// Announcement sent after the removal, not to the removed client to avoid race conditions with the gui
 		publish("A client left to room "+roomName,"server");
 	}
 

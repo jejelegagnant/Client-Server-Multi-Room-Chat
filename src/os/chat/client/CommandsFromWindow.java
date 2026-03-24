@@ -20,7 +20,8 @@ public interface CommandsFromWindow {
 	
 	/**
 	 * Send a new message to the server to propagate to all clients
-	 * @param text The message to send
+	 * @param message The message to send
+	 * @param chatName name of the room to send to
 	 */
 	public void sendText (String chatName, String message);
 	

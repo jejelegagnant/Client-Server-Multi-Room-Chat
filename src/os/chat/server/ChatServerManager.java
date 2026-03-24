@@ -9,11 +9,9 @@ import java.util.Vector;
 /**
  * This class manages the available {@link ChatServer}s and available rooms.
  * <p>
- * At first, you should not modify its functionalities but only export
- * them for being called by the {@link os.chat.client.ChatClient}.
- * <p>
- * Later you will modify this to allow creating new rooms and
- * looking them up from the {@link os.chat.client.ChatClient}.
+ * It communicates with client through its remote interface {@link ChatServerManagerInterface} implementing RMI
+ * It mainly handles the creation of new {@link ChatServer} that acts semi-independent chatroom.
+ * All chat room are inside the same JVM.
  */
 public class ChatServerManager implements ChatServerManagerInterface {
 
@@ -40,10 +38,13 @@ public class ChatServerManager implements ChatServerManagerInterface {
 	public ChatServerManager () {
 		chatRoomsList = new Vector<String>();
 		chatRooms = new Vector<ChatServer>();
+		// Set system property to match the computer Ip instead of localhost
 		System.setProperty("java.rmi.server.hostname",myIp);
 		try {
+			// create and export its stub
 			ChatServerManagerInterface stub = (ChatServerManagerInterface) UnicastRemoteObject.exportObject(this,0);
 			registry = LocateRegistry.getRegistry();
+			// bind its stub to its name in the registry
 			registry.rebind("ChatServerManager",stub);
 		} catch (RemoteException e){
 			System.err.println("can not export the object");
@@ -83,7 +84,9 @@ public class ChatServerManager implements ChatServerManagerInterface {
 	 * <code>false</code> otherwise.
 	 */
 	public boolean createRoom(String roomName) {
+		// check if homonym exists
 		if (!chatRoomsList.contains(roomName)){
+			// instantiate a new ChatServerObject in the same process
 			chatRooms.add(new ChatServer(roomName));
 			chatRoomsList.add(roomName);
 			System.out.println("New room created: "+roomName);
@@ -96,6 +99,7 @@ public class ChatServerManager implements ChatServerManagerInterface {
 
 	public static void main(String[] args) {
 		try {
+			// create a registry on the default Java RMI port
 			LocateRegistry.createRegistry(1099);
 		} catch (RemoteException e) {
 			System.err.println("error: can not create registry");

@@ -19,6 +19,7 @@ public interface CommandsFromServer extends Remote {
 	 * of it's window to display the message.
 	 * @param roomName the name of the chat room
 	 * @param message the message to display
+	 * @throws RemoteException when client server communication fails
 	 */
 	public void receiveMsg(String roomName, String message) throws RemoteException;
 }
